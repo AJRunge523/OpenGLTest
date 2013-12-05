@@ -82,8 +82,10 @@ public class MainActivity extends Activity {
 		ArrayList<Float> coords = new ArrayList<Float>();
 		ArrayList<Short> order = new ArrayList<Short>();
 		ArrayList<Float> normals = new ArrayList<Float>();
+		ArrayList<Float> textureCoords = new ArrayList<Float>();
+		ArrayList<Short> textureCoordsOrder = new ArrayList<Short>();
 		try {
-			LoadObject(coords, order, normals);
+			LoadObject(coords, order, normals, textureCoords, textureCoordsOrder);
 		} catch (IOException e) {
 			Log.v("a", "IOException");
 			e.printStackTrace();
@@ -93,29 +95,30 @@ public class MainActivity extends Activity {
 		setContentView(mGLView);
 	}
 
-	private void LoadObject(ArrayList<Float> coords, ArrayList<Short> order, ArrayList<Float> normals) throws IOException {
-		BufferedReader x = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.alduin)));
+	private void LoadObject(ArrayList<Float> coords, ArrayList<Short> order, ArrayList<Float> normals, 
+			ArrayList<Float> textureCoords, ArrayList<Short> textureCoordsOrder) throws IOException {
+		BufferedReader x = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.hammer_obj)));
 		String line;
 		while((line = x.readLine()) != null)
 		{
 			String[] split = line.split(" ");
 			if(split[0].equals("v"))
 			{
-				coords.add(Float.valueOf(split[1]));
-				coords.add(Float.valueOf(split[2]));
-				coords.add(Float.valueOf(split[3]));
+				coords.add(Float.valueOf(split[1])/3*2);
+				coords.add(Float.valueOf(split[2])/3*2);
+				coords.add(Float.valueOf(split[3])/3*2);
 			}
 			else if(split[0].equals("f"))
 			{
 				String[] temp = split[1].split("/");
 				order.add((short)(Short.valueOf(temp[0])-1));
-				//normals.add((short)(Short.valueOf(temp[0])-1));
+				textureCoordsOrder.add((short)(Short.valueOf(temp[1])-1));
 				temp = split[2].split("/");
 				order.add((short)(Short.valueOf(temp[0])-1));
-				//normals.add((short)(Short.valueOf(temp[0])-1));
+				textureCoordsOrder.add((short)(Short.valueOf(temp[1])-1));
 				temp = split[3].split("/");
 				order.add((short)(Short.valueOf(temp[0])-1));
-				//normals.add((short)(Short.valueOf(temp[0])-1));
+				textureCoordsOrder.add((short)(Short.valueOf(temp[1])-1));
 			}	
 			else if(split[0].equals("vn"))
 			{
@@ -123,7 +126,13 @@ public class MainActivity extends Activity {
 				normals.add(Float.valueOf(split[2]));
 				normals.add(Float.valueOf(split[3]));
 			}
+			else if(split[0].equals("vt"))
+			{
+				textureCoords.add(Float.valueOf(split[1]));
+				textureCoords.add(-1 * Float.valueOf(split[2]));
+			}
 		}
+		
 	}
 	
 	public int loadTexture(String filename) {
@@ -168,6 +177,20 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+	
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		mGLView.onResume();
+	}
+	
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+		mGLView.onPause();
 	}
 
 	
