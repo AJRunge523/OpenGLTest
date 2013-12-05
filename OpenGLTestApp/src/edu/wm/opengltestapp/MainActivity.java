@@ -25,10 +25,11 @@ public class MainActivity extends Activity {
 		
 		private final MyRenderer mRenderer;
 		
-		public MyGLSurfaceView(Context context, ArrayList<Float> coords, ArrayList<Short> order, ArrayList<Float> normals) {
+		public MyGLSurfaceView(Context context, ArrayList<Float> coords, ArrayList<Short> order, ArrayList<Float> normals,
+				ArrayList<Float> textCoords, ArrayList<Short> textOrder) {
 			super(context);
 			setEGLContextClientVersion(2); //Must go above everything else
-			mRenderer = new MyRenderer(coords, order, normals);
+			mRenderer = new MyRenderer(coords, order, normals, textCoords, textOrder);
 			setRenderer(mRenderer);
 			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 		}
@@ -91,7 +92,7 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 		//Log.v("a", coords.get(0).toString());
-		mGLView = new MyGLSurfaceView(this, coords, order, normals);
+		mGLView = new MyGLSurfaceView(this, coords, order, normals, textureCoords, textureCoordsOrder);
 		setContentView(mGLView);
 	}
 

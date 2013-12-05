@@ -12,6 +12,7 @@ import android.util.Log;
 
 public class MyObj {
 	
+	public static final String TAG = "MY_OBJECT";
 
 	/*
 	final String vertexShaderCode =
@@ -77,16 +78,19 @@ public class MyObj {
         "}";
 	*/
     private final String vertexShaderCode =
-            // This matrix member variable provides a hook to manipulate
-            // the coordinates of the objects that use this vertex shader
-    		"uniform vec4 u_Color; " + 
-            "uniform mat4 uMVPMatrix;" +
+            "uniform mat4 u_MVPMatrix;" +
+    
             "varying vec4 v_Color;" + 
-            "attribute vec4 vPosition;" +
+            "varying vec2 v_TexCoordinate;" +
+            
+            "attribute vec4 a_Position;" +
+            //"attribute vec2 a_TexCoordinate;" +
+            
             "void main() {" +
-            // the matrix must be included as a modifier of gl_Position
-            "v_Color = vPosition;" + 
-            "  gl_Position = vPosition * uMVPMatrix;" +
+            "v_Color = a_Position;" + 
+            //"v_TexCoordinate = a_TexCoordinate;" + 
+            //Multiply each vertex by the model/view/projection matrix
+            "  gl_Position = a_Position * u_MVPMatrix;" + 
             "}";
     /*
     private final String vertexShaderCode =
@@ -185,7 +189,8 @@ public class MyObj {
     // Set color with red, green, blue and alpha (opacity) values
     float color[] = { 0.2f, 0.709803922f, 0.898039216f, 1.0f };
 	
-	public MyObj(ArrayList<Float> coords, ArrayList<Short> order) {
+	public MyObj(ArrayList<Float> coords, ArrayList<Short> order,
+			ArrayList<Float> textCoords, ArrayList<Short> textOrder) {
         // initialize vertex byte buffer for shape coordinates
 		
 		objCoords = new float[coords.size()];
@@ -230,8 +235,10 @@ public class MyObj {
         checkGlError("attaching vertex shader");
         GLES20.glAttachShader(mProgram, fragmentShader); // add the fragment shader to program
         checkGlError("attaching fragment shader");
+        GLES20.glBindAttribLocation(mProgram, 0, "a_Position");
         GLES20.glLinkProgram(mProgram);                  // create OpenGL program executables
         checkGlError("linking program");
+        GLES20.glBindAttribLocation(mProgram, 0, "a_Position");
 	}
 
 
@@ -243,6 +250,14 @@ public class MyObj {
 		//Add the source code to the shader and compile it
 		GLES20.glShaderSource(shader, shaderCode);
 		GLES20.glCompileShader(shader);
+		final int[] compileStatus = new int[1];
+		GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
+		if(compileStatus[0]==0)
+		{
+			GLES20.glDeleteShader(shader);
+			Log.v(TAG, GLES20.glGetShaderInfoLog(shader));
+			throw new RuntimeException("Error creating " + (type==GLES20.GL_VERTEX_SHADER? "vertex shader" : "fragment shader"));
+		}
 		checkGlError("loading shader: ");
 		return shader;
 	}
@@ -253,7 +268,7 @@ public class MyObj {
         GLES20.glUseProgram(mProgram);
 
         // get handle to vertex shader's vPosition member
-        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
+        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_Position");
         checkGlError("getting vPosition ");
         // Enable a handle to the triangle vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle);
@@ -270,7 +285,7 @@ public class MyObj {
         GLES20.glUniform4fv(mColorHandle, 1, color, 0);
 
         // get handle to shape's transformation matrix
-        mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+        mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "u_MVPMatrix");
         checkGlError("glGetUniformLocation");
         // Apply the projection and view transformation
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);

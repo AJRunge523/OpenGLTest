@@ -11,17 +11,17 @@ import android.opengl.Matrix;
 
 public class MyRenderer implements Renderer {
 
-	private Triangle mTriangle;
-	private Square mSquare;
 	private MyObj myObj;
 	ArrayList<Float> coords;
 	ArrayList<Short> order;
 	ArrayList<Float> normals;
+	ArrayList<Float> textCoords;
+	ArrayList<Short> textOrder;
 	
 	
     private final float[] mMVPMatrix = new float[16];
     private final float[] mProjMatrix = new float[16];
-    private final float[] mVMatrix = new float[16];
+    private final float[] mViewMatrix = new float[16];
     private final float[] xRotationMatrix = new float[16];
     private final float[] yRotationMatrix = new float[16];
     private final float[] mRotationMatrix = new float[16];
@@ -30,28 +30,27 @@ public class MyRenderer implements Renderer {
     public volatile float mAngle;
     public volatile float mAngle2;
 	
-    public MyRenderer(ArrayList<Float> coords, ArrayList<Short> order, ArrayList<Float> normals2)
+    public MyRenderer(ArrayList<Float> coords, ArrayList<Short> order, ArrayList<Float> normals,
+    		ArrayList<Float> textCoords, ArrayList<Short> textOrder)
     {
     	super();
     	this.coords = coords;
     	this.order = order;
-    	this.normals = normals2;
+    	this.normals = normals;
+    	this.textCoords = textCoords;
+    	this.textOrder = textOrder;
     }
     
 	@Override
 	public void onDrawFrame(GL10 unused) {
         // Draw background color
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
+        GLES20.glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
         // Set the camera position (View matrix)
-        Matrix.setLookAtM(mVMatrix, 0, 0, 0, -5f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -5f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 
         // Calculate the projection and view transformation
-        Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
-
-        // Draw square
-        //mSquare.draw(mMVPMatrix);
-
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mViewMatrix, 0);
         // Create a rotation for the triangle
 //        long time = SystemClock.uptimeMillis() % 4000L;
 //        float angle = 0.090f * ((int) time);
@@ -81,9 +80,7 @@ public class MyRenderer implements Renderer {
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		mTriangle = new Triangle();
-		mSquare = new Square();
-		myObj = new MyObj(coords, order);
+		myObj = new MyObj(coords, order, textCoords, textOrder);
 		
 		GLES20.glDepthFunc(GL10.GL_LEQUAL);
 		GLES20.glEnable(GL10.GL_CULL_FACE);
